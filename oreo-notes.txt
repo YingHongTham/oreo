@@ -1,0 +1,6 @@
+to crop image
+-use ellipse selection tool to select relevant part (e.g. the O or RE)
+-(no need to do this) Layer -> Crop to Selection
+-Selection -> Invert or Ctrl-I to select the complement
+-Layer -> Transparency -> Add Alpha Channel
+-delete
