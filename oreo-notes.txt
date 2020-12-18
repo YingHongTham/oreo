@@ -4,3 +4,8 @@ to crop image
 -Selection -> Invert or Ctrl-I to select the complement
 -Layer -> Transparency -> Add Alpha Channel
 -delete
+
+
+add text describing
+
+add random sequence generator

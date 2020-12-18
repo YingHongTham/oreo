@@ -18,7 +18,21 @@ let last_cream = false;
 // array of audio elements
 let ore = [];
 
+// image heights, widths
+let o_height = 0, o_width = 0, re_height = 0, re_width = 0;
+
 //let shift_y_debug = 0;
+
+//window.onload = function() {
+//counter = 0;
+//initial_x = 100;
+//initial_y = 40;
+//thickness_o = 16;
+//thickness_re = 8;
+//last_y = initial_y;
+//last_cream = false;
+//ore = [];
+//};
 
 function sound(src) {
 	this.sound = document.createElement("audio");
@@ -41,14 +55,32 @@ function sound(src) {
 	}
 }
 
+window.onload = function() {
+	// get the image height, widths
+	let img_o = document.createElement("img");
+	img_o.src = "oreo_o.png";
+	img_o.onload = function() {
+		o_height = img_o.naturalHeight;
+		o_width = img_o.naturalWidth;
+	};
+	let img_re = document.createElement("img");
+	img_re.src = "oreo_re.png";
+	img_re.onload = function() {
+		re_height = img_re.naturalHeight;
+		re_width = img_re.naturalWidth;
+	};
+};
+
+	
+
 add_o.onclick = function() {
 	let img = document.createElement("img");
 	let div = document.getElementById("mydiv");
 	img.src = "oreo_o.png";
 	img.alt = "oreo_o.png";
-	let shift_x = initial_x - img.naturalWidth/2;
+	let shift_x = initial_x - o_width/2;
 	if (last_cream) last_y -= 4;
-	let shift_y = last_y - img.naturalHeight/2 - thickness_o/2;
+	let shift_y = last_y - o_height/2 - thickness_o/2;
 	img.style = `position:absolute; left:${shift_x}px; top:${shift_y}px; z-index:${counter}`;
 	div.append(img);
 	counter++;
@@ -71,8 +103,8 @@ add_re.onclick = function() {
 	let div = document.getElementById("mydiv");
 	img.src = "oreo_re.png";
 	img.alt = "oreo_re.png";
-	let shift_x = initial_x - img.naturalWidth/2;
-	let shift_y = last_y - img.naturalHeight/2 - thickness_re/2;
+	let shift_x = initial_x - re_width/2;
+	let shift_y = last_y - re_height/2 - thickness_re/2;
 	img.style = `position:absolute; left:${shift_x}px; top:${shift_y}px; z-index:${counter}`;
 	div.append(img);
 	counter++;
