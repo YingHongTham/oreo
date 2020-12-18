@@ -1,6 +1,14 @@
 // keep track of the "top" of each O or RE
-// ("top" as in imagine the physical object)
+// ("top" as in imagine the physical 3D object,
+// so it's not the top border of the last image,
+// but rather somewhere in the middle
+
+// number of pieces already present
+// used to add z-index to the pieces
+// (strictly speaking not necessary as new pieces
+// should appear above old ones anyway
 let counter = 0;
+
 
 let initial_x = 100;
 let initial_y = 40;
@@ -23,28 +31,13 @@ let o_height = 0, o_width = 0, re_height = 0, re_width = 0;
 
 //let shift_y_debug = 0;
 
-//window.onload = function() {
-//counter = 0;
-//initial_x = 100;
-//initial_y = 40;
-//thickness_o = 16;
-//thickness_re = 8;
-//last_y = initial_y;
-//last_cream = false;
-//ore = [];
-//};
 
+// constructor for a sound object;
+// creates an audio element
 function sound(src) {
 	this.sound = document.createElement("audio");
 	this.sound.src = src;
 	this.sound.setAttribute("preload", "auto");
-	//this.sound.setAttribute("onended", "alert('ended');");
-	//this.sound.setAttribute("controls", false);
-	//this.sound.style.display = "none";
-	//this.sound.onended = function() {
-	// alert('ended');
-	// this.sound.remove();
-	//};
 	document.body.appendChild(this.sound);
 	this.play = function () {
 		this.sound.play();
@@ -55,6 +48,7 @@ function sound(src) {
 	}
 }
 
+// initializes the height and width of the images
 window.onload = function() {
 	// get the image height, widths
 	let img_o = document.createElement("img");
@@ -72,14 +66,22 @@ window.onload = function() {
 };
 
 	
-
+// adds an 'O' pieces on top when button 'add_o' is clicked
+// adds the image element to inner div which is contained in outer div
+// want to keep the top of the oreo stack constant,
+// so shift the inner div relative to outer div
+// as mentioned before, we keep track of things based on where
+// the imagined physical "top" of the O or RE is,
+// but since position of image is given in terms of the top-left corner,
+// the left and top style attributes need to be adjusted by
+// half of the image widths and heights respectively
 add_o.onclick = function() {
 	let img = document.createElement("img");
 	let div = document.getElementById("mydiv");
 	img.src = "oreo_o.png";
 	img.alt = "oreo_o.png";
 	let shift_x = initial_x - o_width/2;
-	if (last_cream) last_y -= 4;
+	if (last_cream) last_y -= 4; // otherwise O will cover too much of RE
 	let shift_y = last_y - o_height/2 - thickness_o/2;
 	img.style = `position:absolute; left:${shift_x}px; top:${shift_y}px; z-index:${counter}`;
 	div.append(img);
