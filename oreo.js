@@ -22,16 +22,23 @@ let stack_top = {
 let data = [];
 data['o'] = {
 	img : "oreo_o.png",
-	thickness : 16,
+	height : 0,
+	width : 0,
+	thickness : 16, //TODO make this a percentage of image
 	audio : "oreo-audio-o.mp3",
+	duration : 0,
 };
 data['re'] = {
 	img : "oreo_re.png",
+	height : 0,
+	width : 0,
 	thickness : 8,
 	audio : "oreo-audio-re.mp3",
+	duration : 0,
 };
 
 let stack_audio = [];
+let stack_oreo = [];
 
 // O piece is too thick, would cover too much cream
 // if adding O on top of RE, we place it slightly higher
@@ -41,17 +48,42 @@ let last_cream = false;
 let last_cream_adjust = 4;
 
 
-// TODO put audio into constructor
-function OreoPiece (src , thickness) {
-	this.thickness = thickness;
+// initializes the height and width of the images
+window.onload = function() {
+	// get the image height, widths
+	let images = [];
+	let audios = [];
+	for (let key in data) {
+		images[key] = document.createElement("img");
+		images[key].src = data[key].img;
+		images[key].onload = function() {
+			data[key].height = images[key].naturalHeight;
+			data[key].width = images[key].naturalWidth;
+		};
+		audios[key] = document.createElement("audio");
+		audios[key].src = data[key].audio;
+		audios[key].setAttribute("preload", "auto");
+		audios[key].onloadedmetadata = function() {
+			data[key].duration = audios[key].duration;
+		};
+	}
+};
+
+
+function OreoPiece (oreo) {
+	this.oreo = oreo;
+	this.thickness = data[oreo].thickness;
 	this.img = document.createElement("img");
-	this.img.src = src;
-	this.img.alt = src;
+	this.img.src = data[oreo].img;
+	this.img.alt = data[oreo].img;
+	this.audio = new sound(data[oreo].audio);
+	this.duration = data[oreo].duration;
 	this.styleStr = `position:absolute; z-index:${counter};`;
+	//this.img.style = this.styleStr + `left:${shift.x}px; top:${shift.y}px;`;
 	counter++;
 	this.point = {
-		x : 0,
-		y : 0,
+		x : data[oreo].width/2,
+		y : data[oreo].height/2 + data[oreo].thickness/2,
 	};
 	// the following functions should only be used after
 	// this.img has loaded, e.g. called from inside
@@ -63,7 +95,7 @@ function OreoPiece (src , thickness) {
 		this.point.y = this.img.naturalHeight/2 + this.thickness/2;
 	};
 	this.addShift = function(pos) {
-		shift = {
+		let shift = {
 			x : pos.x - this.point.x,
 			y : pos.y - this.point.y,
 		};
@@ -72,6 +104,32 @@ function OreoPiece (src , thickness) {
 		//this.img.style.top = `${shift.y}px;`
 		this.img.style = this.styleStr + `left:${shift.x}px; top:${shift.y}px;`;
 	};
+	this.addToMydiv = function(pos) {
+		let shift = {
+			x : pos.x - this.point.x,
+			y : pos.y - this.point.y,
+		};
+		this.img.style = this.styleStr + `left:${shift.x}px; top:${shift.y}px;`;
+		let div = document.getElementById("mydiv");
+		div.append(this.img);
+		stack_oreo.push(this);
+	}
+}
+
+function updateOreoName() {
+	let p = document.getElementById("oreo_name");
+	let string = "";
+	for (let i = stack_oreo.length - 1; i >= 0; i--) {
+		switch(stack_oreo[i].oreo) {
+			case 'o':
+				string += 'O';
+				break;
+			case 're':
+				string += 'RE';
+				break;
+		}
+	}
+	p.innerHTML = string;
 }
 
 
@@ -92,54 +150,65 @@ function sound(src) {
 	}
 }
 
-
-function addOreoPiece(oreo) {
-	console.log('before stack_top: ', stack_top);
-	let oreoPiece = new OreoPiece(data[oreo].img, data[oreo].thickness);
+function addOreoPiece(oreo, play_audio) {
+	let oreoPiece = new OreoPiece(oreo);
 
 	if (last_cream && oreo == 'o') stack_top.y -= last_cream_adjust;
 
-	oreoPiece.img.onload = function() {
-		oreoPiece.secondInit();
-		oreoPiece.addShift(stack_top);
+	oreoPiece.addToMydiv(stack_top);
 
-		let div = document.getElementById("mydiv");
-		div.append(oreoPiece.img);
+	stack_top.y -= data[oreo].thickness;
+	last_cream = (oreo == 're');
 
-		stack_top.y -= data[oreo].thickness;
-		last_cream = (oreo == 're');
+	// move mydiv down to accommodate
+	let diff_y = initial_stack_top.y - stack_top.y;
+	let div = document.getElementById("mydiv");
+	div.style.top = `${diff_y}px`;
 
-		// move mydiv down to accommodate
-		let diff_y = initial_stack_top.y - stack_top.y;
-		div.style.top = `${diff_y}px`;
-
-		let audio = new sound(data[oreo].audio);
-		audio.play();
-		stack_audio.push(audio.sound);
-	};
+	if (play_audio) oreoPiece.audio.play();
 }
 
+
 add_o.onclick = function() {
-	addOreoPiece('o');
+	addOreoPiece('o', true);
+	updateOreoName();
 };
 
 add_re.onclick = function() {
-	addOreoPiece('re');
+	addOreoPiece('re', true);
+	updateOreoName();
 };
 
 
 playall.onclick = function() {
 	let prev_duration = 0;
-	for (let index = stack_audio.length - 1; index >= 0; index--) {
-		window.setTimeout(function() { stack_audio[index].play(); }, prev_duration * 1000);
-		prev_duration += stack_audio[index].duration - 0.08;
+	for (let index = stack_oreo.length - 1; index >= 0; index--) {
+		window.setTimeout(function() { stack_oreo[index].audio.play(); }, prev_duration * 1000);
+		prev_duration += stack_oreo[index].duration - 0.08;
 	}
 };
+
+deleteoreo.onclick = function() {
+	if (stack_oreo.length == 0) return;
+	let ind = stack_oreo.length - 1;
+	stack_top.y += stack_oreo[ind].thickness;
+	if (ind > 0 && stack_oreo[ind].oreo == 'o' && stack_oreo[ind-1].oreo == 're')
+		stack_top.y += last_cream_adjust;
+	stack_oreo.pop();
+	let div = document.getElementById("mydiv");
+	div.removeChild(div.lastElementChild);
+	let diff_y = initial_stack_top.y - stack_top.y;
+	div.style.top = `${diff_y}px`;
+	updateOreoName();
+};
+
+//TODO implement typing in typeinput.on??
 
 let body = document.body;
 let o_button = document.getElementById('add_o');
 let re_button = document.getElementById('add_re');
 let play_button = document.getElementById('playall');
+let del_button = document.getElementById('deleteoreo');
 body.addEventListener('keydown', (event) => {
 	switch (event.key) {
 		case 'o':
@@ -151,8 +220,11 @@ body.addEventListener('keydown', (event) => {
 		case 'p':
 			play_button.click();
 			break;
+		case 'd':
+			del_button.click();
+			break;
 	}
-	console.log(`key=${event.key},code=${event.code}`);
+	//console.log(`key=${event.key},code=${event.code}`);
 });
 
 
@@ -327,3 +399,30 @@ add_re.onclick = function() {
 		//prev_duration += ore[index].duration - 0.04;
 	//}
 //};
+
+
+//function addOreoPiece(oreo, play_audio) {
+//	console.log('before stack_top: ', stack_top);
+//	let oreoPiece = new OreoPiece(data[oreo].img, data[oreo].thickness);
+//
+//	if (last_cream && oreo == 'o') stack_top.y -= last_cream_adjust;
+//
+//	oreoPiece.img.onload = function() {
+//		oreoPiece.secondInit();
+//		oreoPiece.addShift(stack_top);
+//
+//		let div = document.getElementById("mydiv");
+//		div.append(oreoPiece.img);
+//
+//		stack_top.y -= data[oreo].thickness;
+//		last_cream = (oreo == 're');
+//
+//		// move mydiv down to accommodate
+//		let diff_y = initial_stack_top.y - stack_top.y;
+//		div.style.top = `${diff_y}px`;
+//
+//		let audio = new sound(data[oreo].audio);
+//		if (play_audio) audio.play();
+//		//stack_audio.push(audio.sound);
+//	};
+//}
