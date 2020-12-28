@@ -36,6 +36,7 @@ data['re'] = {
 	audio : "oreo-audio-re.mp3",
 	duration : 0,
 };
+let delete_audio_src = "crunch.mp3";
 
 let stack_audio = [];
 let stack_oreo = [];
@@ -190,6 +191,7 @@ playall.onclick = function() {
 
 deleteoreo.onclick = function() {
 	if (stack_oreo.length == 0) return;
+
 	let ind = stack_oreo.length - 1;
 	stack_top.y += stack_oreo[ind].thickness;
 	if (ind > 0 && stack_oreo[ind].oreo == 'o' && stack_oreo[ind-1].oreo == 're')
@@ -199,10 +201,17 @@ deleteoreo.onclick = function() {
 	div.removeChild(div.lastElementChild);
 	let diff_y = initial_stack_top.y - stack_top.y;
 	div.style.top = `${diff_y}px`;
+
+	audio = new sound(delete_audio_src);
+	audio.play()
+
 	updateOreoName();
 };
 
 //TODO implement typing in typeinput.on??
+//
+//TODO add chomping sound when delete
+//TODO make button flash when button is clicked
 
 let body = document.body;
 let o_button = document.getElementById('add_o');
