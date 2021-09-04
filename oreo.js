@@ -210,8 +210,8 @@ deleteoreo.onclick = function() {
 
 //TODO implement typing in typeinput.on??
 //
-//TODO add chomping sound when delete
 //TODO make button flash when button is clicked
+//TODO add deepfry button
 
 let body = document.body;
 let o_button = document.getElementById('add_o');
